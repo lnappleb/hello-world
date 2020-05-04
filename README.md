@@ -4,9 +4,9 @@ Lindsey's test repository
   <h1>
     Setting up my Github account.
   </h1>
-  <p>
+  <br>
     <h2>
       Hopefully this works!
-      </p>
+      </br>
   </h2>
   </body>
