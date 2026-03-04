@@ -234,14 +234,41 @@ SELECT
         {
             'number_of_programs': {
                 'type': 'integer',
-                'description': 'How many distinct financing programs or product bundles are listed in the Fee Schedule table? Count each row or group that represents a different Affirm product or program (e.g., Program A, Program B). Return the count as a number.'
+                'description': 'How many distinct financing programs are in the fee schedule section of this document? Each program has its own table and is introduced by a heading above the table. Program headings are typically labeled as Program 1, Program 2, Program A, Program B, Fee Schedule 1, or similar. Count the number of separate program tables. Return the count as a number.'
             }
         }
     ):number_of_programs::INTEGER AS num_programs
 FROM cdr_contracts;
 
 
--- B.2: Affirm Product names
+-- B.2: Program Name
+-- Original prompt: "Identify the program name within the fee schedule of the
+--     document. Programs are often numbered as "Program 1", "Program A", or
+--     "Fee Schedule 1". Each table within a fee schedule is its own program."
+--
+-- Issues with the original:
+--   - Does not tell the model WHERE the program name appears (it is a heading
+--     above the table, not a value inside the table)
+--   - Does not account for parenthetical descriptions that follow the name
+--   - Does not account for lettered prefixes like "(a)" before the program name
+--   - Does not specify output format when multiple programs exist
+--
+-- Optimized:
+SELECT
+    ironclad_id,
+    AI_EXTRACT(
+        file_url,
+        {
+            'program_name': {
+                'type': 'string',
+                'description': 'What are the program names in the fee schedule section of this document? Each program is identified by a heading that appears directly above its pricing table. The heading typically follows a pattern like (a) Program 1, (b) Program 2, Program A, Program B, or Fee Schedule 1. The heading may also include a parenthetical description after the program name, such as Program 1 (Applicable when Merchant only offers interest-bearing loans). Return only the program name and its parenthetical description if present, not the table contents. If there are multiple programs, return each program name separated by a semicolon in the order they appear in the document.'
+            }
+        }
+    ):program_name::VARCHAR AS program_name
+FROM cdr_contracts;
+
+
+-- B.3: Affirm Product names (values inside the table, distinct from program name)
 SELECT
     ironclad_id,
     AI_EXTRACT(
@@ -256,7 +283,7 @@ SELECT
 FROM cdr_contracts;
 
 
--- B.3: MDR values
+-- B.4: MDR values
 SELECT
     ironclad_id,
     AI_EXTRACT(
@@ -271,7 +298,7 @@ SELECT
 FROM cdr_contracts;
 
 
--- B.4: Transaction Fee
+-- B.5: Transaction Fee
 SELECT
     ironclad_id,
     AI_EXTRACT(
@@ -286,7 +313,7 @@ SELECT
 FROM cdr_contracts;
 
 
--- B.5: Customer APR terms
+-- B.6: Customer APR terms
 SELECT
     ironclad_id,
     AI_EXTRACT(
@@ -301,7 +328,7 @@ SELECT
 FROM cdr_contracts;
 
 
--- B.6: Cart Range / Cart Size
+-- B.7: Cart Range / Cart Size
 SELECT
     ironclad_id,
     AI_EXTRACT(
@@ -316,7 +343,7 @@ SELECT
 FROM cdr_contracts;
 
 
--- B.7: Term Length
+-- B.8: Term Length
 SELECT
     ironclad_id,
     AI_EXTRACT(
@@ -331,7 +358,7 @@ SELECT
 FROM cdr_contracts;
 
 
--- B.8: Card MDR (VCN) specifically
+-- B.9: Card MDR (VCN) specifically
 SELECT
     ironclad_id,
     AI_EXTRACT(
@@ -346,7 +373,7 @@ SELECT
 FROM cdr_contracts;
 
 
--- B.9: Direct MDR (API) specifically
+-- B.10: Direct MDR (API) specifically
 SELECT
     ironclad_id,
     AI_EXTRACT(
